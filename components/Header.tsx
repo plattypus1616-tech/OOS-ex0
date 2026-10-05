@@ -114,7 +114,7 @@ export function Header({
       >
         <div className="mx-auto max-w-7xl">
           <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mb-4">
-            Detect phantom stockouts & convert lost revenue into high-converting B2B cold emails
+            Find out-of-stock products & draft cold emails offering Back-in-Stock / Pre-Order waitlist setup to capture high-intent buyers
           </p>
 
           {/* Kumpulan Tombol Fitur */}
@@ -164,25 +164,6 @@ export function Header({
               <span>Bersihkan Data</span>
             </button>
           </div>
-
-          {/* Audit All Action CTA */}
-          <button
-            id="scan-all-queue-btn"
-            onClick={isScanning ? onCancelScan : onScanAll}
-            disabled={!isScanning && totalStoreCount === 0}
-            className={`w-full mt-3.5 py-2.5 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 shadow-xs transition-colors ${
-              isScanning
-                ? "bg-rose-600 text-white hover:bg-rose-700 animate-pulse"
-                : "bg-stone-900 text-white hover:bg-stone-800 disabled:opacity-50 dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-stone-200"
-            }`}
-          >
-            <Zap className={`h-4 w-4 ${isScanning ? "text-amber-300" : ""}`} />
-            <span>
-              {isScanning
-                ? `🛑 Batal Scanning (${activeScanCount}/${totalStoreCount})`
-                : `Audit All Stores (${totalStoreCount})`}
-            </span>
-          </button>
         </div>
       </div>
     </header>

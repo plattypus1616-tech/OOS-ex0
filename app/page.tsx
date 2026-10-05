@@ -7,6 +7,7 @@ import { StoreAuditCard } from "@/components/StoreAuditCard";
 import { BulkStoreModal } from "@/components/BulkStoreModal";
 import { PythonScriptModal } from "@/components/PythonScriptModal";
 import { EmailOutreachDrawer } from "@/components/EmailOutreachDrawer";
+import PostAuditManager from "@/components/PostAuditManager";
 import { DEFAULT_STORES } from "@/lib/presets";
 import { StoreAuditResult, EmailTone } from "@/lib/types";
 import { getCleanDomain, createInitialStoreResult } from "@/lib/storage";
@@ -20,6 +21,7 @@ import {
   AlertCircle,
   ChevronUp,
   Zap,
+  Mail,
 } from "lucide-react";
 
 export default function HomePage() {
@@ -393,7 +395,7 @@ export default function HomePage() {
         hotLeadsCount={hotLeadsCount}
       />
 
-      <main className="flex-1 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      <main className="flex-1 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-6 pb-32 space-y-6">
         {/* Main Input & Action Hero Card */}
         <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-xs dark:border-stone-800 dark:bg-stone-900">
           <form onSubmit={handleAddSingleStore} className="flex flex-col sm:flex-row gap-3">
@@ -501,6 +503,15 @@ export default function HomePage() {
           onFilterChange={setFilter}
         />
 
+        {/* Laporan Eksekusi Bulk Audit & Karantina Proteksi */}
+        {(successfulLeads.length > 0 || failedStores.length > 0) && (
+          <PostAuditManager
+            successfulAudits={successfulLeads}
+            failedAudits={failedStores}
+            onClearFailed={() => setFailedStores([])}
+          />
+        )}
+
         {/* Filter Toolbar & Queue Header */}
         <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
           <div className="flex items-center gap-2">
@@ -602,37 +613,59 @@ export default function HomePage() {
         </div>
       </footer>
 
-      {/* Floating Spatial Navigation Dock (Quick Return to Audit Menu & Actions) */}
-      {showScrollTop && (
-        <div className="fixed bottom-6 right-6 z-40 flex items-center gap-2 bg-stone-900/95 dark:bg-stone-800/95 backdrop-blur-md p-2 rounded-2xl border border-stone-700/80 shadow-2xl transition-all duration-300">
+      {/* Bilah navigasi bawah murni teks (Clean Minimalist - Bebas Tumpang Tindih) */}
+      <div className="fixed bottom-0 left-0 w-full p-4 bg-zinc-950 border-t border-zinc-800 z-50 flex justify-between items-center shadow-2xl">
+        <div className="flex items-center gap-6">
+          <div className="flex flex-col">
+            <span className="text-[10px] text-zinc-500 font-semibold uppercase tracking-widest">
+              Antrean
+            </span>
+            <span className="text-base font-bold text-zinc-100 font-mono">
+              {isScanningAll
+                ? `${activeScanProgress.current} / ${activeScanProgress.total} Diproses`
+                : `${queue.length} Toko`}
+            </span>
+          </div>
+
+          {/* Fungsi Ke Atas terintegrasi sebagai teks minimalis */}
           <button
             onClick={scrollToTop}
-            className="flex items-center gap-2 px-3.5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-xs transition-all active:scale-95"
-            title="Kembali ke menu audit dan filter di atas"
+            className="text-xs font-medium text-zinc-400 hover:text-zinc-100 transition-colors uppercase tracking-wider cursor-pointer"
           >
-            <ChevronUp className="h-4 w-4" />
-            <span>Menu Audit & Atas</span>
+            Ke Atas
           </button>
-          
-          {isScanningAll ? (
+
+          {hotLeadsCount > 0 && (
             <button
-              onClick={handleCancelScan}
-              className="flex items-center gap-1.5 px-3 py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-medium transition-colors"
+              onClick={() => setShowOutreachModal(true)}
+              className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-zinc-900 border border-zinc-700 text-zinc-300 hover:text-white text-xs font-medium transition-colors"
             >
-              <span>🛑 Batal ({activeScanProgress.current}/{activeScanProgress.total})</span>
-            </button>
-          ) : (
-            <button
-              onClick={handleScanAll}
-              disabled={queue.length === 0}
-              className="flex items-center gap-1.5 px-3 py-2.5 bg-stone-800 hover:bg-stone-700 text-stone-200 rounded-xl text-xs font-medium border border-stone-700 transition-colors disabled:opacity-50"
-            >
-              <Zap className="h-3.5 w-3.5 text-amber-400" />
-              <span>Audit All ({queue.length})</span>
+              <Mail className="h-3 w-3 text-indigo-400" />
+              <span>{hotLeadsCount} Leads OOS</span>
             </button>
           )}
         </div>
-      )}
+
+        {isScanningAll ? (
+          <button
+            id="sticky-cancel-scan-btn"
+            onClick={handleCancelScan}
+            className="bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white px-6 py-2.5 rounded text-sm font-bold tracking-wide transition-colors flex items-center gap-2 cursor-pointer animate-pulse"
+          >
+            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+            <span>Batal ({activeScanProgress.current}/{activeScanProgress.total})</span>
+          </button>
+        ) : (
+          <button
+            id="sticky-start-scan-btn"
+            onClick={handleScanAll}
+            disabled={queue.length === 0}
+            className="bg-zinc-100 text-zinc-950 px-6 py-2.5 rounded text-sm font-bold tracking-wide hover:bg-white active:bg-zinc-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          >
+            Audit Semua ({queue.length})
+          </button>
+        )}
+      </div>
 
       {/* Modals */}
       <BulkStoreModal

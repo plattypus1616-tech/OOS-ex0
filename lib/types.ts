@@ -60,6 +60,13 @@ export interface SoldOutItem {
   vendor?: string;
 }
 
+export interface EmailVariant {
+  subject: string;
+  body: string;
+  hook: string;
+  type: string;
+}
+
 export interface GeneratedColdEmail {
   subject: string;
   alternativeSubjects: string[];
@@ -69,6 +76,21 @@ export interface GeneratedColdEmail {
   tone: string;
   keyLossHighlight: string;
   estimatedMonthlyBurn: string;
+  variantA?: EmailVariant;
+  variantB?: EmailVariant;
+  followUpDay3?: {
+    subject: string;
+    body: string;
+  };
+  followUpDay7?: {
+    subject: string;
+    body: string;
+  };
+  conversionScore?: {
+    predictedReplyRate: string;
+    trustScore: number;
+    strengths: string[];
+  };
 }
 
 export interface StoreAuditResult {
@@ -98,7 +120,9 @@ export interface StoreAuditResult {
 
 export type EmailTone =
   | 'sharp_3_sentence'
+  | 'preorder_recovery'
   | 'revenue_leak_executive'
   | 'phantom_inventory_specialist'
+  | 'vip_waitlist'
   | 'linkedin_inmail'
   | 'loom_video_script';

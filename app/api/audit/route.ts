@@ -57,31 +57,23 @@ async function generateAIPitch(
     properties: {
       subject: { 
         type: Type.STRING, 
-        description: "Subjek email B2B yang menarik tapi tidak clickbait" 
+        description: "Subjek email B2B yang menarik, to-the-point, dan relevan dengan produk toko" 
       },
       body: { 
         type: Type.STRING, 
-        description: "Isi email B2B. Jangan gunakan salam pembuka kaku. Langsung ke inti." 
+        description: "Isi email B2B maks 4 kalimat pendek dalam bahasa Inggris kasual tanpa salam basa-basi. Sebutkan contoh produk habis dan tawarkan jasa pemasangan Back-in-Stock Notification atau sistem Pre-Order/waitlist." 
       }
     },
     required: ["subject", "body"]
   };
 
-  const systemInstruction = `Anda adalah spesialis B2B Outreach. Tugas Anda menulis draft email dingin (cold email) kepada pemilik toko e-commerce. 
-Aturan Mutlak:
-1. DILARANG memanipulasi, menebak, atau menyebutkan nominal uang, kerugian, atau 'revenue loss'.
-2. Fokus pada FAKTA inventaris: sebutkan jumlah total SKU dan persentase yang Out of Stock (OOS).
-3. Sebutkan satu nama produk spesifik yang sedang OOS sebagai bukti audit Anda.
-4. Tawarkan nilai (value): Anda bisa membantu mereka mengotomatisasi pemantauan stok ini.
-5. Gunakan bahasa Inggris profesional, santai, maksimum 4 kalimat pendek.`;
+  const systemInstruction = `Anda adalah spesialis B2B Cold Outreach. Tulis email singkat (maks 4 kalimat) ke pemilik toko Shopify. ATURAN MUTLAK: 1. JANGAN tawarkan pemantauan atau pelacakan stok. 2. TAWARKAN jasa pemasangan 'Back-in-Stock Notification' atau sistem 'Pre-Order' agar trafik website mereka tidak terbuang sia-sia. 3. Gunakan bahasa Inggris yang kasual, to-the-point, tanpa salam basa-basi. 4. Dilarang mengarang nominal kerugian finansial.`;
 
-  const prompt = `Data Audit Toko (Fakta Aktual):
-- Nama Toko: ${store.name}
-- Total Katalog: ${store.totalProducts} SKU
-- Jumlah Item Out of Stock: ${store.outOfStockCount} SKU (${soldOutRate}% OOS)
-- Contoh Produk Habis: "${store.sampleOosItemName}"
+  const prompt = `Nama Toko: ${store.name}
+Jumlah SKU Kosong: ${store.outOfStockCount}
+Contoh Barang Kosong: ${store.sampleOosItemName}
 
-Tulis draft email dingin sesuai aturan mutlak di atas.`;
+Eksekusi: Buat email yang menyebutkan ${store.sampleOosItemName} yang sedang habis, lalu tawarkan bantuan setup sistem penangkap data pembeli (waitlist) di halaman produk tersebut.`;
 
   try {
     const response = await ai.models.generateContent({
@@ -97,32 +89,34 @@ Tulis draft email dingin sesuai aturan mutlak di atas.`;
     const text = response.text || "{}";
     const parsed = JSON.parse(text.trim());
     return {
-      subject: parsed.subject || `Quick note on ${sampleItem} stock on ${storeName}`,
+      subject: parsed.subject || `Quick question about ${sampleItem} on ${storeName}`,
       alternativeSubjects: [
-        `Inventory check: ${storeName} catalog`,
-        `Automating stock monitoring for ${storeName}`
+        `Back-in-stock waitlist for ${storeName}`,
+        `Capturing demand for out-of-stock items on ${storeName}`,
+        `Quick idea for ${sampleItem} on ${storeName}`,
       ],
-      body: parsed.body || "",
-      hook: `Noticed that ${sampleItem} is out of stock in your ${totalVariants} SKU catalog.`,
-      callToAction: "Would you be open to seeing how automated stock tracking works?",
+      body: parsed.body || `Hey ${storeName} team,\n\nI was browsing your store and noticed "${sampleItem}" is currently out of stock.\n\nInstead of losing shoppers who land on that sold-out page, I can help you set up a simple Back-in-Stock alert or pre-order waitlist to capture their emails.\n\nOpen to having me set this up for you this week so you don't lose that high-intent traffic?`,
+      hook: `Noticed "${sampleItem}" is out of stock—ready to capture interested shoppers with a waitlist?`,
+      callToAction: "Would you be open to a quick setup of a back-in-stock waitlist for your out-of-stock items?",
       tone: tone,
-      keyLossHighlight: `Inventory Fact: ${soldOutItems.length} of ${totalVariants} SKUs (${soldOutRate}%) OOS (including ${sampleItem})`,
-      estimatedMonthlyBurn: `${soldOutRate}% OOS across ${totalVariants} SKUs`,
+      keyLossHighlight: `${soldOutItems.length} OOS items (${soldOutRate}%) where high-intent visitor traffic can be converted into waitlist leads`,
+      estimatedMonthlyBurn: `${soldOutItems.length} high-demand products currently leaking visitors`,
     };
   } catch (err) {
     console.error("Gemini pitch generation error:", err);
     return {
-      subject: `Quick note on ${sampleItem} stock on ${storeName}`,
+      subject: `Quick question about ${sampleItem} on ${storeName}`,
       alternativeSubjects: [
-        `Automating stock monitoring for ${storeName}`,
-        `Quick check on ${storeName}'s ${totalVariants} SKUs`
+        `Back-in-stock waitlist for ${storeName}`,
+        `Capturing demand for out-of-stock items on ${storeName}`,
+        `Quick idea for ${sampleItem} on ${storeName}`,
       ],
-      body: `Hey ${storeName} team,\n\nWhile reviewing your catalog of ${totalVariants} SKUs, I noticed that about ${soldOutRate}% are currently out of stock.\n\nFor example, "${sampleItem}" is currently listed as unavailable.\n\nWe help e-commerce stores automate live stock monitoring so you get notified right away when popular products run low.\n\nWould you be open to seeing how automated tracking works for your inventory?`,
-      hook: `Noticed that across your ${totalVariants} SKUs, about ${soldOutRate}% are currently out of stock.`,
-      callToAction: "Would you be open to seeing how automated tracking works for your inventory?",
+      body: `Hey ${storeName} team,\n\nI was browsing your store and noticed "${sampleItem}" is currently out of stock.\n\nInstead of losing shoppers who land on that sold-out page, I can help you set up a simple Back-in-Stock alert or pre-order waitlist to capture their emails.\n\nOpen to having me set this up for you this week so you don't lose that high-intent traffic?`,
+      hook: `Noticed "${sampleItem}" is out of stock—ready to capture interested shoppers with a waitlist?`,
+      callToAction: "Would you be open to a quick setup of a back-in-stock waitlist for your out-of-stock items?",
       tone,
-      keyLossHighlight: `Inventory Fact: ${soldOutItems.length} of ${totalVariants} SKUs (${soldOutRate}%) OOS.`,
-      estimatedMonthlyBurn: `${soldOutRate}% OOS (${soldOutItems.length}/${totalVariants} SKUs)`,
+      keyLossHighlight: `${soldOutItems.length} OOS items (${soldOutRate}%) ready for waitlist recovery`,
+      estimatedMonthlyBurn: `${soldOutItems.length} high-demand products currently leaking visitors`,
     };
   }
 }
@@ -174,7 +168,8 @@ async function fetchStoreData(
     try {
       // Rotasi User Agent
       const randomUA = USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];
-      const targetUrl = `${storeUrl}/products.json?limit=250&page=${page}`;
+      // Server-side filtering: Amputasi data mentah langsung di server Shopify (tanpa body_html / deskripsi berat)
+      const targetUrl = `${storeUrl}/products.json?limit=250&page=${page}&fields=id,title,variants,handle,images`;
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 12000);
@@ -183,6 +178,7 @@ async function fetchStoreData(
         headers: {
           "User-Agent": randomUA,
           Accept: "application/json",
+          "Accept-Encoding": "gzip, deflate, br",
           "Accept-Language": "en-US,en;q=0.9",
           "Cache-Control": "no-cache",
         },
@@ -429,11 +425,53 @@ export async function POST(req: NextRequest) {
 
     const topOOSProducts = soldOutItems.slice(0, 8);
 
-    // Attempt to resolve contact email from preset
-    const matchedPreset = DEFAULT_STORES.find(
-      (s) => s.url.includes(cleanDomain) || cleanDomain.includes(s.name.toLowerCase().replace(/\s+/g, ""))
-    );
-    const detectedEmail = matchedPreset?.contactEmail;
+    // Attempt to scrape live contact email from store pages or fallback to preset
+    let detectedEmail = "";
+    try {
+      const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g;
+      const invalidEmailFilters = [
+        "sentry", "shopify", "wixpress", "cloudflare", "example.com", "schema.org", 
+        "domain.com", "email.com", "test.com", "youremail", "username", ".png", ".jpg", ".webp", ".svg"
+      ];
+
+      // Quick fetch of homepage with 3s timeout
+      const pageController = new AbortController();
+      const pageTimeout = setTimeout(() => pageController.abort(), 3500);
+      const homeRes = await fetch(fullUrl, {
+        headers: {
+          "User-Agent": USER_AGENTS[0],
+          Accept: "text/html,application/xhtml+xml",
+        },
+        signal: pageController.signal,
+        next: { revalidate: 0 },
+      }).catch(() => null);
+      clearTimeout(pageTimeout);
+
+      if (homeRes && homeRes.ok) {
+        const html = await homeRes.text();
+        const matches = html.match(emailRegex) || [];
+        for (const match of matches) {
+          const lower = match.toLowerCase().trim();
+          const isInvalid = invalidEmailFilters.some((f) => lower.includes(f));
+          if (!isInvalid && lower.length > 5) {
+            detectedEmail = lower;
+            break;
+          }
+        }
+      }
+    } catch {
+      // Ignore scraping error, fallback safely
+    }
+
+    // Attempt to resolve from preset if scraping did not find an email
+    if (!detectedEmail) {
+      const matchedPreset = DEFAULT_STORES.find(
+        (s) => s.url.includes(cleanDomain) || cleanDomain.includes(s.name.toLowerCase().replace(/\s+/g, ""))
+      );
+      if (matchedPreset?.contactEmail) {
+        detectedEmail = matchedPreset.contactEmail;
+      }
+    }
 
     let generatedEmail: GeneratedColdEmail | undefined;
     if (autoGenerateEmail && soldOutItems.length > 0) {

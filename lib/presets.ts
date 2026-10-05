@@ -20,28 +20,33 @@ export const DEFAULT_STORES: StorePreset[] = [
 
 export const TONE_LABELS: Record<string, { label: string; description: string; badge: string }> = {
   sharp_3_sentence: {
-    label: "3-Sentence B2B Sharp",
-    description: "Crisp, punchy, zero-fluff cold email highlighting revenue leak and low-friction audit offer.",
-    badge: "Most Popular",
+    label: "Waitlist & Restock Alert (Recommended)",
+    description: "Casual 3-4 sentence cold email offering a Back-in-Stock notification or Pre-Order setup so visitor traffic isn't wasted.",
+    badge: "Highest Conversion",
+  },
+  preorder_recovery: {
+    label: "Pre-Order Concierge",
+    description: "Focus on capturing immediate orders with a pre-order system so shopper intent isn't wasted.",
+    badge: "Direct Sales",
   },
   revenue_leak_executive: {
-    label: "Executive Revenue Leak",
-    description: "Financial ROI angle targeted at Founders, CMOs, and VPs of E-Commerce.",
-    badge: "High ACV",
+    label: "Traffic Loss to Waitlist",
+    description: "Direct founder/executive outreach offering to prevent traffic bounce on OOS pages by collecting customer emails.",
+    badge: "High Intent",
   },
   phantom_inventory_specialist: {
-    label: "Phantom Inventory Specialist",
-    description: "Technical operational audit angle focusing on ERP mismatch & backorder recovery.",
-    badge: "Technical",
+    label: "VIP Restock Lead Capture",
+    description: "Offer to set up a seamless restock SMS/email notification system on high-demand products.",
+    badge: "List Builder",
   },
   linkedin_inmail: {
-    label: "LinkedIn InMail / DM",
-    description: "Short, conversational founder-to-founder message under 70 words.",
+    label: "Casual Founder DM",
+    description: "Ultra-concise peer-to-peer message under 60 words offering frictionless waitlist setup.",
     badge: "Direct DM",
   },
   loom_video_script: {
-    label: "60-Second Loom Video Script",
-    description: "Script for recording an async audit video walking through their live store catalog.",
+    label: "60s Loom Video Script",
+    description: "Concise async video script walking through their live OOS product page and offering setup.",
     badge: "Video Pitch",
   },
 };

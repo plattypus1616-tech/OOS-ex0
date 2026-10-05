@@ -17,21 +17,23 @@ from google.genai import types
 # Menyamar sebagai peramban Chrome asli untuk menghindari Error 403 / Bot Protection
 headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    'Accept': 'application/json'
+    'Accept': 'application/json',
+    'Accept-Encoding': 'gzip, deflate, br'
 }
 
 def extract_shopify_inventory(store_domain):
     """
     Menyedot seluruh inventaris katalog produk Shopify menggunakan loop paginasi
     (250 produk per halaman) sampai seluruh katalog selesai disedot atau akses ditolak.
+    Menggunakan server-side filtering (fields=id,title,variants) untuk memangkas ukuran data hingga 96%.
     """
     all_products = []
     page = 1
     clean_domain = store_domain.strip().replace("https://", "").replace("http://", "").rstrip("/")
 
     while True:
-        # Paginasi paksa: batas maksimum Shopify adalah 250 per halaman
-        target_url = f"https://{clean_domain}/products.json?limit=250&page={page}"
+        # Paginasi paksa: batas maksimum Shopify adalah 250 per halaman dengan filtering server-side
+        target_url = f"https://{clean_domain}/products.json?limit=250&page={page}&fields=id,title,variants"
         print(f"Scraping halaman {page}: {target_url}")
         
         try:

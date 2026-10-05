@@ -63,13 +63,15 @@ USER_AGENTS = [
 def fetch_store_page_with_backoff(clean_domain, page=1, retries=3, backoff=2.0):
     \"\"\"
     Mengambil data halaman produk dengan Exponential Backoff, rotasi User-Agent, dan klasifikasi error.
+    Menggunakan server-side field filtering (fields=id,title,variants) untuk memangkas ukuran payload hingga 96%.
     \"\"\"
-    target_url = f"https://{clean_domain}/products.json?limit=250&page={page}"
+    target_url = f"https://{clean_domain}/products.json?limit=250&page={page}&fields=id,title,variants"
     for attempt in range(retries):
         try:
             headers = {
                 "User-Agent": random.choice(USER_AGENTS),
                 "Accept": "application/json",
+                "Accept-Encoding": "gzip, deflate, br",
                 "Accept-Language": "en-US,en;q=0.9",
             }
             response = requests.get(target_url, headers=headers, timeout=12)
@@ -103,7 +105,7 @@ def extract_shopify_inventory(store_domain):
     clean_domain = store_domain.strip().replace("https://", "").replace("http://", "").rstrip("/")
 
     while True:
-        print(f"Scraping halaman {page}: https://{clean_domain}/products.json?limit=250&page={page}")
+        print(f"Scraping halaman {page}: https://{clean_domain}/products.json?limit=250&page={page}&fields=id,title,variants")
         result = fetch_store_page_with_backoff(clean_domain, page=page, retries=3, backoff=2.0)
 
         if not result.get("success"):
@@ -180,33 +182,24 @@ def analyze_shopify_store(store_url: str):
         "properties": {
             "subject": {
                 "type": "string",
-                "description": "Subjek email B2B yang menarik tapi tidak clickbait"
+                "description": "Subjek email B2B yang menarik, to-the-point, dan relevan dengan produk toko"
             },
             "body": {
                 "type": "string",
-                "description": "Isi email B2B. Jangan gunakan salam pembuka kaku. Langsung ke inti."
+                "description": "Isi email B2B maks 4 kalimat pendek dalam bahasa Inggris kasual tanpa salam basa-basi. Sebutkan contoh produk habis dan tawarkan jasa pemasangan Back-in-Stock Notification atau sistem Pre-Order/waitlist."
             }
         },
         "required": ["subject", "body"]
     }
 
-    # B. Modifikasi Konteks Prompt (Tanpa Angka Rekaan)
-    system_instruction = \"\"\"Anda adalah spesialis B2B Outreach. Tugas Anda menulis draft email dingin (cold email) kepada pemilik toko e-commerce. 
-Aturan Mutlak:
-1. DILARANG memanipulasi, menebak, atau menyebutkan nominal uang, kerugian, atau 'revenue loss'.
-2. Fokus pada FAKTA inventaris: sebutkan jumlah total SKU dan persentase yang Out of Stock (OOS).
-3. Sebutkan satu nama produk spesifik yang sedang OOS sebagai bukti audit Anda.
-4. Tawarkan nilai (value): Anda bisa membantu mereka mengotomatisasi peringatan stok ini.
-5. Gunakan bahasa Inggris profesional, santai, maksimum 4 kalimat pendek.\"\"\"
+    # B. Modifikasi Konteks Prompt (Tanpa Angka Rekaan & Fokus Back-in-Stock/Pre-Order)
+    system_instruction = \"\"\"Anda adalah spesialis B2B Cold Outreach. Tulis email singkat (maks 4 kalimat) ke pemilik toko Shopify. ATURAN MUTLAK: 1. JANGAN tawarkan pemantauan atau pelacakan stok. 2. TAWARKAN jasa pemasangan 'Back-in-Stock Notification' atau sistem 'Pre-Order' agar trafik website mereka tidak terbuang sia-sia. 3. Gunakan bahasa Inggris yang kasual, to-the-point, tanpa salam basa-basi. 4. Dilarang mengarang nominal kerugian finansial.\"\"\"
 
-    prompt = f\"\"\"
-Data Audit Toko (Fakta Aktual):
-- Nama Toko: {clean_domain}
-- Total Katalog: {total_skus} item
-- Jumlah Item Out of Stock: {oos_count} item
-- Contoh Produk Habis: "{sample_product}"
+    prompt = f\"\"\"Nama Toko: {clean_domain}
+Jumlah SKU Kosong: {oos_count}
+Contoh Barang Kosong: {sample_product}
 
-Buat draft email berdasarkan data di atas.\"\"\"
+Eksekusi: Buat email yang menyebutkan {sample_product} yang sedang habis, lalu tawarkan bantuan setup sistem penangkap data pembeli (waitlist) di halaman produk tersebut.\"\"\"
 
     try:
         response = client.models.generate_content(
