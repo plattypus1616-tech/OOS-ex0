@@ -18,6 +18,8 @@ import {
   SlidersHorizontal,
   Send,
   X,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { StoreAuditResult, EmailTone } from "@/lib/types";
 import { TONE_LABELS } from "@/lib/presets";
@@ -60,6 +62,7 @@ export function StoreAuditCard({
   const [isEditingEmail, setIsEditingEmail] = useState(false);
   const [activeVariant, setActiveVariant] = useState<"A" | "B">("A");
   const [selectedSubjectOverride, setSelectedSubjectOverride] = useState<string | null>(null);
+  const [isLightEmailMode, setIsLightEmailMode] = useState(false);
 
   const hasOOS = audit.soldOutCount > 0;
   const isProtected = audit.status === "protected";
@@ -350,19 +353,31 @@ export function StoreAuditCard({
 
       {/* AI Consultative Cold Outreach Section */}
       {hasOOS && audit.generatedEmail && (
-        <div className="border-t border-stone-200 bg-stone-900 text-stone-100 dark:border-stone-800 dark:bg-stone-950 p-5">
+        <div className={`border-t transition-colors duration-200 p-5 ${
+          isLightEmailMode
+            ? "border-stone-300 bg-stone-100 text-stone-900"
+            : "border-stone-200 bg-stone-900 text-stone-100 dark:border-stone-800 dark:bg-stone-950"
+        }`}>
           {/* Header & Controls */}
-          <div className="flex flex-wrap items-center justify-between gap-2.5 pb-3 border-b border-stone-800">
+          <div className={`flex flex-wrap items-center justify-between gap-2.5 pb-3 border-b ${
+            isLightEmailMode ? "border-stone-300" : "border-stone-800"
+          }`}>
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-emerald-950/80 border border-emerald-700/60 text-emerald-400">
-                <Sparkles className="h-4 w-4" />
-              </div>
+              <button
+                type="button"
+                onClick={() => setIsLightEmailMode((prev) => !prev)}
+                title="Fitur Dark/light"
+                className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
+                  isLightEmailMode
+                    ? "bg-white border-stone-300 text-amber-600 hover:bg-stone-200"
+                    : "bg-stone-800/90 border-stone-700 text-amber-300 hover:bg-stone-700"
+                }`}
+              >
+                {isLightEmailMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </button>
               <div>
-                <h4 className="text-xs font-semibold text-stone-200 flex items-center gap-1.5">
-                  B2B Outreach Engine
-                  <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
-                    High-Conversion Consultative
-                  </span>
+                <h4 className={`text-xs font-semibold ${isLightEmailMode ? "text-stone-800" : "text-stone-200"}`}>
+                  High-Conversion Consultative B2B Outreach Engine
                 </h4>
               </div>
             </div>
@@ -552,7 +567,11 @@ export function StoreAuditCard({
           )}
 
           {/* Email Body */}
-          <div className="relative mt-3 rounded-xl bg-stone-950 p-4 font-sans text-xs text-stone-300 leading-relaxed border border-stone-800 whitespace-pre-line">
+          <div className={`relative mt-3 rounded-xl p-4 font-sans text-xs leading-relaxed border whitespace-pre-line ${
+            isLightEmailMode
+              ? "bg-white text-stone-800 border-stone-300 shadow-xs"
+              : "bg-stone-950 text-stone-300 border-stone-800"
+          }`}>
             {isRegenerating ? (
               <div className="flex items-center justify-center py-6 gap-2 text-stone-400">
                 <RefreshCw className="h-4 w-4 animate-spin text-emerald-400" />

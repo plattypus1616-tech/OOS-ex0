@@ -7,7 +7,6 @@ import {
   Mail,
   Zap,
   RotateCcw,
-  Sparkles,
   ShoppingBag,
   Trash2,
   ChevronDown,
@@ -70,10 +69,6 @@ export function Header({
           <div className="flex items-center gap-2">
             <span className="font-bold text-xs sm:text-sm text-stone-900 dark:text-stone-100 tracking-tight">
               Shopify OOS Auditor {isDashboardOpen ? "" : "(Klik untuk Menu)"}
-            </span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
-              <Sparkles className="h-2.5 w-2.5" />
-              Gemini 3.7 Flash
             </span>
           </div>
         </div>

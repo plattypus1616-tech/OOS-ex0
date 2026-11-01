@@ -14,7 +14,6 @@ import { getCleanDomain, createInitialStoreResult } from "@/lib/storage";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import {
   Search,
-  Sparkles,
   RefreshCw,
   X,
   ShieldAlert,
@@ -41,6 +40,8 @@ export default function HomePage() {
   const [activeScanProgress, setActiveScanProgress] = useState({ current: 0, total: 0 });
   const [filter, setFilter] = useState<"all" | "oos_only" | "clean_only" | "failed_only">("all");
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [isSingleScanning, setIsSingleScanning] = useState(false);
+  const [singleScanProgress, setSingleScanProgress] = useState(0);
 
   // Spatial scroll listener
   useEffect(() => {
@@ -190,7 +191,7 @@ export default function HomePage() {
   // Add single store via Live Store Audit input
   const handleAddSingleStore = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputUrl.trim()) return;
+    if (!inputUrl.trim() || isSingleScanning) return;
 
     let formatted = inputUrl.trim();
     if (!formatted.startsWith("http://") && !formatted.startsWith("https://")) {
@@ -209,7 +210,23 @@ export default function HomePage() {
 
     const target = formatted;
     setInputUrl("");
-    await auditStore(target, true);
+    setIsSingleScanning(true);
+    setSingleScanProgress(25);
+
+    const timer = setInterval(() => {
+      setSingleScanProgress((prev) => (prev < 90 ? prev + 15 : prev));
+    }, 250);
+
+    try {
+      await auditStore(target, true);
+      setSingleScanProgress(100);
+    } finally {
+      clearInterval(timer);
+      setTimeout(() => {
+        setIsSingleScanning(false);
+        setSingleScanProgress(0);
+      }, 400);
+    }
   };
 
   // Add bulk stores
@@ -416,18 +433,48 @@ export default function HomePage() {
             <button
               type="submit"
               id="submit-single-audit-btn"
-              disabled={!inputUrl.trim()}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-stone-900 px-5 py-3 text-xs font-medium text-white shadow-xs hover:bg-stone-800 disabled:opacity-50 dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-stone-200 transition-colors"
+              disabled={!inputUrl.trim() || isSingleScanning}
+              className="relative overflow-hidden inline-flex items-center justify-center gap-2.5 rounded-xl bg-stone-900 px-5 py-3 text-xs font-semibold text-white shadow-xs hover:bg-stone-800 disabled:opacity-50 dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-stone-200 transition-all min-w-[120px]"
             >
-              <Sparkles className="h-4 w-4 text-amber-300" />
-              Audit Store & Draft Pitch
+              {/* Fitur Load Bar */}
+              <div
+                className="flex items-center gap-1.5"
+                title={isSingleScanning ? `Memproses: ${singleScanProgress}%` : "Fitur Load Bar"}
+              >
+                <div className="w-10 h-2 bg-stone-700/90 dark:bg-stone-300/90 rounded-full overflow-hidden p-0.5 flex items-center">
+                  <div
+                    className={`h-full rounded-full transition-all duration-300 ${
+                      isSingleScanning
+                        ? "bg-amber-400 dark:bg-amber-500 animate-pulse"
+                        : "bg-emerald-400 dark:bg-emerald-500 w-2.5"
+                    }`}
+                    style={isSingleScanning ? { width: `${singleScanProgress}%` } : undefined}
+                  />
+                </div>
+                {isSingleScanning && (
+                  <span className="font-mono text-[10px] text-amber-300 dark:text-amber-700">
+                    {singleScanProgress}%
+                  </span>
+                )}
+              </div>
+
+              {/* Simple Text: 'runn' */}
+              <span className="tracking-wide">runn</span>
+
+              {/* Progress Line Indikator di Bawah Tombol saat Berjalan */}
+              {isSingleScanning && (
+                <div
+                  className="absolute bottom-0 left-0 h-1 bg-amber-400 dark:bg-amber-500 transition-all duration-300"
+                  style={{ width: `${singleScanProgress}%` }}
+                />
+              )}
             </button>
           </form>
 
           {/* Target Stores Badges (synchronized with audit_queue state) */}
           <div className="mt-4 pt-3 border-t border-stone-100 dark:border-stone-800/80 flex flex-wrap items-center gap-2">
             <span className="text-[11px] font-medium text-stone-500 uppercase tracking-wider">
-              Target Stores ({queue.length}):
+              Store data({queue.length}):
             </span>
             {queue.length === 0 ? (
               <div className="flex items-center gap-2">
@@ -516,7 +563,7 @@ export default function HomePage() {
         <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
           <div className="flex items-center gap-2">
             <h2 className="text-sm font-semibold text-stone-900 dark:text-stone-100">
-              Audit Stream & Cold Outreach Deck
+              Data obtained
             </h2>
             <span className="rounded-full bg-stone-200 px-2 py-0.5 text-xs text-stone-700 dark:bg-stone-800 dark:text-stone-300">
               {filteredResults.length} stores

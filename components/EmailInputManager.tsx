@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Sparkles, Search, Check, Mail } from "lucide-react";
+import { Mail } from "lucide-react";
 
 interface EmailInputManagerProps {
   storeUrl: string;
@@ -60,9 +60,9 @@ export default function EmailInputManager({
       className={`flex flex-col gap-2 mt-4 bg-slate-50 dark:bg-stone-900/90 p-3.5 rounded-xl border border-slate-200 dark:border-stone-800 ${className}`}
     >
       <div className="flex justify-between items-center">
-        <label className="text-xs font-bold text-slate-700 dark:text-stone-300 uppercase tracking-wider flex items-center gap-1.5">
+        <label className="text-xs font-semibold text-slate-700 dark:text-stone-300 uppercase tracking-wider flex items-center gap-1.5">
           <Mail className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
-          <span>Email Target {currentEmail ? "" : "(Manual)"}</span>
+          <span>Search email</span>
           {appliedBadge && (
             <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold lowercase bg-emerald-100 dark:bg-emerald-950/70 px-1.5 py-0.2 rounded">
               {appliedBadge}
@@ -70,26 +70,24 @@ export default function EmailInputManager({
           )}
         </label>
 
-        {/* Tombol Bantuan Kognitif */}
+        {/* Tombol Clean & Simple: 'Guess' & 'googling' */}
         <div className="flex items-center gap-1.5">
           <button
             type="button"
             onClick={handleAutoDetect}
             disabled={isFetching}
-            className="text-[10px] bg-blue-100 hover:bg-blue-200 text-blue-700 dark:bg-blue-950/70 dark:text-blue-300 dark:hover:bg-blue-900 px-2 py-1 rounded-md font-bold transition-colors flex items-center gap-1 cursor-pointer"
-            title="Terapkan tebakan heuristik pola B2B standar (hello@domain.com)"
+            className="text-[11px] font-mono px-2.5 py-1 rounded-md border border-slate-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-slate-700 dark:text-stone-300 hover:text-black dark:hover:text-white hover:bg-slate-100 dark:hover:bg-stone-700 transition-colors cursor-pointer"
+            title="Guess email pattern (hello@domain.com)"
           >
-            <Sparkles className="h-3 w-3" />
-            <span>{isFetching ? "..." : "⚡ Tebak Pola"}</span>
+            <span>{isFetching ? "..." : "Guess"}</span>
           </button>
           <button
             type="button"
             onClick={handleGoogleSearch}
-            className="text-[10px] bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700 px-2 py-1 rounded-md font-bold transition-colors flex items-center gap-1 cursor-pointer"
-            title="Cari email publik toko langsung di Google Search Dorking"
+            className="text-[11px] font-mono px-2.5 py-1 rounded-md border border-slate-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-slate-700 dark:text-stone-300 hover:text-black dark:hover:text-white hover:bg-slate-100 dark:hover:bg-stone-700 transition-colors cursor-pointer"
+            title="Search email on Google"
           >
-            <Search className="h-3 w-3" />
-            <span>🔍 Cari di Google</span>
+            <span>googling</span>
           </button>
         </div>
       </div>
